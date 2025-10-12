@@ -1,0 +1,66 @@
+services:
+  redis:
+    image: redis:7.4-alpine # Используйте актуальную версию
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning --requirepass qqq --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: delayed-notifier-db
+    restart: unless-stopped
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+      - ./postgresql-config/postgresql.conf:/etc/postgresql/postgresql.conf
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: qqq
+      POSTGRES_DB: test
+      POSGTRES_INITDB_ARGS: --encoding=UTF-8 --locale=C
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev -d test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app-network
+
+  shortener:
+    build:
+      context: ../shortener
+      dockerfile: ../shortener/dockerfile.production
+    ports:
+      - "80:8080"
+    environment:
+      - DEBUG=false
+      - PORT=8080
+      - POSTGRES_PASSWORD=qqq
+      - REDIS_PASSWORD=qqq
+      - CONFIG_PATH=../config/config.yml
+      - TEMPLATES=templates/*.html
+    volumes:
+      - ../config:/config
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+    driver: local
