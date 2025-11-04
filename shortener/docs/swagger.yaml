@@ -1,0 +1,173 @@
+basePath: /
+definitions:
+  redirect.Agrigated:
+    properties:
+      alias:
+        type: string
+      redirects:
+        items:
+          $ref: '#/definitions/redirect.Redirect'
+        type: array
+      total:
+        format: int64
+        type: integer
+    type: object
+  redirect.Redirect:
+    properties:
+      alias:
+        type: string
+      date:
+        type: string
+      id:
+        format: int64
+        type: integer
+      userAgent:
+        type: string
+    type: object
+  request.NewShort:
+    properties:
+      alias:
+        type: string
+      original:
+        type: string
+    type: object
+  response.Response:
+    properties:
+      error:
+        type: string
+      result: {}
+      status:
+        type: string
+    type: object
+host: localhost
+info:
+  contact: {}
+  description: Создает алиасы для ссылок
+  title: Shortener
+  version: 0.0.1
+paths:
+  /analytics/{alias}:
+    get:
+      consumes:
+      - application/json
+      description: Fetches aggregated redirect data for a short URL alias with filters
+        and pagination.
+      parameters:
+      - description: Short URL alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      - default: "2025-01-01T00:00:00Z"
+        description: Start date in ISO8601 format
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - default: "2025-12-31T23:59:59Z"
+        description: End date in ISO8601 format
+        in: query
+        name: end_date
+        required: true
+        type: string
+      - default: user_agent
+        description: Column to filter by (e.g. user_agent)
+        in: query
+        name: filter
+        type: string
+      - default: Mozilla/5.0...
+        description: Value to filter
+        in: query
+        name: value
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/redirect.Agrigated'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get redirect analytics (JSON API)
+      tags:
+      - Analytics
+  /s/{alias}:
+    get:
+      description: Redirects user to the original URL. On error, returns JSON.
+      parameters:
+      - description: Short URL alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      responses:
+        "307":
+          description: Temporary redirect to original URL
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Redirect by alias
+      tags:
+      - URLs
+  /shorten:
+    post:
+      consumes:
+      - application/json
+      description: Creates a short alias for a given original URL.
+      parameters:
+      - description: Shortening request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.NewShort'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Create a new short URL alias
+      tags:
+      - URLs
+swagger: "2.0"
