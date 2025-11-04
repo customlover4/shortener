@@ -33,6 +33,18 @@ func MainHandler() gin.HandlerFunc {
 	}
 }
 
+// NewShort creates a new URL alias.
+// @Summary Create a new short URL alias
+// @Description Creates a short alias for a given original URL.
+// @Tags URLs
+// @Accept json
+// @Produce json
+// @Param request body request.NewShort true "Shortening request"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Failure 503 {object} response.Response
+// @Router /shorten [post]
 func NewShort(s servicer) gin.HandlerFunc {
 	return func(ctx *ginext.Context) {
 		const op = "internal.handlers.newShort"
@@ -75,8 +87,16 @@ func NewShort(s servicer) gin.HandlerFunc {
 	}
 }
 
-var test = make([]int, 10000)
-
+// Redirect to original URL by alias.
+// @Summary Redirect by alias
+// @Description Redirects user to the original URL. On error, returns JSON.
+// @Tags URLs
+// @Param alias path string true "Short URL alias"
+// @Success 307 {string} string "Temporary redirect to original URL"
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Failure 503 {object} response.Response
+// @Router /s/{alias} [get]
 func Redirect(s servicer) gin.HandlerFunc {
 	return func(ctx *ginext.Context) {
 		const op = "internal.handlers.Redirect"
@@ -123,6 +143,23 @@ func Redirect(s servicer) gin.HandlerFunc {
 	}
 }
 
+// GetAnalytics returns redirect analytics in JSON format.
+// @Summary Get redirect analytics (JSON API)
+// @Description Fetches aggregated redirect data for a short URL alias with filters and pagination.
+// @Tags Analytics
+// @Accept json
+// @Produce json
+// @Param alias path string true "Short URL alias"
+// @Param start_date query string true "Start date in ISO8601 format" default(2025-01-01T00:00:00Z)
+// @Param end_date query string true "End date in ISO8601 format" default(2025-12-31T23:59:59Z)
+// @Param filter query string false "Column to filter by (e.g. user_agent)" default(user_agent)
+// @Param value query string false "Value to filter" default(Mozilla/5.0...)
+// @Param page query integer false "Page number" default(1)
+// @Success 200 {object} redirect.Agrigated
+// @Failure 400 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /analytics/{alias} [get]
 func Analytics(s servicer) gin.HandlerFunc {
 	return func(ctx *ginext.Context) {
 		const op = "internal.handlers.Redirects"

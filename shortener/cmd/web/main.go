@@ -22,6 +22,8 @@ import (
 	"github.com/wb-go/wbf/zlog"
 
 	"net/http"
+
+	_ "shortener/docs"
 )
 
 // @title Shortener
