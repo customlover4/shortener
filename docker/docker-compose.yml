@@ -45,10 +45,10 @@ services:
       - PORT=8080
       - POSTGRES_PASSWORD=qqq
       - REDIS_PASSWORD=qqq
-      - CONFIG_PATH=../config/config.yml
+      - CONFIG_PATH=./config/config.yml
       - TEMPLATES=templates/*.html
-    volumes:
-      - ../config:/config
+    # volumes:
+      # - ../config:/config
     restart: unless-stopped
     depends_on:
       postgres:
@@ -61,6 +61,5 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data:
   redis_data:
     driver: local

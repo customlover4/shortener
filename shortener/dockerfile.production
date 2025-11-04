@@ -16,15 +16,12 @@ RUN CGO_ENABLED=0 GOOS=linux go build cmd/web/main.go
 # Финальный образ
 FROM alpine:latest
 
-# Добавляем пользователя для безопасности :cite[4]
-RUN adduser -D -g '' appuser
-USER appuser
-
 WORKDIR /app
 
 # Копируем собранный бинарник
 COPY --from=builder /app/main .
 COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/config ./config
 
 EXPOSE 8080
 
